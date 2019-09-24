@@ -1,0 +1,19 @@
+[09:46:11 - AWT-EventQueue-0] [GUI.java:2846] [INFO] - External tools default settings: /external_tools_linux_64.config
+[09:46:11 - AWT-EventQueue-0] [GUI.java:2876] [INFO] - External tools user settings: /root/.cooja.user.properties
+[09:46:18 - Thread-0] [Simulation.java:423] [INFO] - Simulation random seed: 123456
+[09:46:18 - Thread-0] [CompileContiki.java:140] [INFO] - > make udp-sink.cooja TARGET=cooja 
+[09:46:18 - Thread-0] [ContikiMoteType.java:384] [INFO] - Creating core communicator between Java class 'Lib1' and Contiki library 'mtype664.cooja'
+[09:46:21 - Thread-0] [ContikiMoteType.java:452] [INFO] - mtype664.cooja: data section at 0x2277c0 (968 == 0x3c8 bytes)
+[09:46:21 - Thread-0] [ContikiMoteType.java:459] [INFO] - mtype664.cooja: BSS section at 0x227ba0 (37616 == 0x92f0 bytes)
+[09:46:21 - Thread-0] [ContikiMoteType.java:470] [INFO] - mtype664.cooja: no common section found
+[09:46:21 - Thread-0] [ContikiMoteType.java:477] [WARN] - mtype664.cooja: no readonly section found
+[09:46:21 - Thread-0] [ContikiMoteType.java:513] [INFO] - mtype664.cooja: offsetting Cooja mote address space: -1881346048
+[09:46:21 - Thread-0] [CompileContiki.java:140] [INFO] - > make udp-sender.cooja TARGET=cooja 
+[09:46:21 - Thread-0] [ContikiMoteType.java:384] [INFO] - Creating core communicator between Java class 'Lib2' and Contiki library 'mtype595.cooja'
+[09:46:24 - Thread-0] [ContikiMoteType.java:452] [INFO] - mtype595.cooja: data section at 0x2287e0 (968 == 0x3c8 bytes)
+[09:46:24 - Thread-0] [ContikiMoteType.java:459] [INFO] - mtype595.cooja: BSS section at 0x228bc0 (37680 == 0x9330 bytes)
+[09:46:24 - Thread-0] [ContikiMoteType.java:470] [INFO] - mtype595.cooja: no common section found
+[09:46:24 - Thread-0] [ContikiMoteType.java:477] [WARN] - mtype595.cooja: no readonly section found
+[09:46:24 - Thread-0] [ContikiMoteType.java:513] [INFO] - mtype595.cooja: offsetting Cooja mote address space: -1885753344
+[09:46:24 - Thread-0] [TimeLine.java:567] [INFO] - Zoom level: 500.0 microseconds/pixel 
+[09:46:29 - Thread-5] [Simulation.java:252] [INFO] - Simulation main loop started, system time: 1568693789341

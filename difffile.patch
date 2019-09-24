@@ -1,0 +1,199 @@
+0a1,2
+> # -*- makefile -*-
+> 
+2c4
+<   ${error CONTIKI not defined! You must specify where CONTIKI resides}
+---
+>   ${error CONTIKI not defined! You must specify where Contiki resides}
+21a24,33
+> ifndef HOST_OS
+>   ifeq ($(OS),Windows_NT)
+>   ## TODO: detect more specific Windows set-ups,
+>   ## e.g. CygWin, MingW, VisualC, Watcom, Interix
+>     HOST_OS := Windows
+>   else
+>     HOST_OS := $(shell uname)
+>   endif
+> endif
+> 
+26c38
+< 	@ls -1 $(CONTIKI)/platform | grep -v CVS
+---
+> 	@ls -1 $(CONTIKI)/platform $(TARGETDIRS) | grep -v CVS
+50,51c62,63
+< LIBS    = memb.c mmem.c timer.c list.c etimer.c ctimer.c energest.c rtimer.c stimer.c \
+<           print-stats.c ifft.c crc16.c random.c checkpoint.c ringbuf.c
+---
+> LIBS    = memb.c mmem.c timer.c list.c etimer.c ctimer.c energest.c rtimer.c stimer.c trickle-timer.c \
+>           print-stats.c ifft.c crc16.c random.c checkpoint.c ringbuf.c settings.c
+53d64
+< NET     = netstack.c uip-debug.c packetbuf.c queuebuf.c packetqueue.c
+55,71c66,67
+< ifdef UIP_CONF_IPV6
+<   CFLAGS += -DUIP_CONF_IPV6=1
+<   UIP   = uip6.c tcpip.c psock.c uip-udp-packet.c uip-split.c \
+<           resolv.c tcpdump.c uiplib.c simple-udp.c
+<   NET   += $(UIP) uip-icmp6.c uip-nd6.c uip-packetqueue.c \
+<           sicslowpan.c neighbor-attr.c neighbor-info.c uip-ds6.c
+< ifdef RPL_FUZZY
+<   include $(CONTIKI)/core/net/rplfuzzy/Makefile.rpl
+< else # RPL_FUZZY
+<   include $(CONTIKI)/core/net/rpl/Makefile.rpl
+< endif # RPL_FUZZY
+< else # UIP_CONF_IPV6
+<   UIP   = uip.c uiplib.c resolv.c tcpip.c psock.c hc.c uip-split.c uip-fw.c \
+<           uip-fw-drv.c uip_arp.c tcpdump.c uip-neighbor.c uip-udp-packet.c \
+<           uip-over-mesh.c dhcpc.c #rawpacket-udp.c
+<   NET   += $(UIP) uaodv.c uaodv-rt.c
+< endif # UIP_CONF_IPV6
+---
+> include $(CONTIKI)/core/net/Makefile.uip
+> include $(CONTIKI)/core/net/rpl/Makefile.rpl
+84,87d79
+< ifdef RPL_FUZZY
+< CONTIKIDIRS += ${addprefix $(CONTIKI)/core/,dev lib net net/mac net/rime \
+<                   net/rplfuzzy  sys cfs ctk lib/ctk loader . }
+< else # RPL_FUZZY
+89,90c81
+<                   net/rpl  sys cfs ctk lib/ctk loader . }
+< endif # RPL_FUZZY
+---
+>                  net/rpl sys cfs ctk lib/ctk loader . }
+97a89,92
+> # Provide way to create $(OBJECTDIR) if it has been removed by make clean
+> $(OBJECTDIR):
+> 	mkdir $@
+> 
+101,107c96,100
+<   APPDIRS += ${wildcard ${addprefix $(CONTIKI)/apps/, $(APPS)} \
+<                 ${addprefix $(CONTIKI)/platform/$(TARGET)/apps/, $(APPS)} \
+< 		${addprefix , $(APPS)}}
+<   APPINCLUDES = ${foreach APP, $(APPS), ${wildcard \
+<                  $(CONTIKI)/apps/$(APP)/Makefile.$(APP) \
+<                  $(CONTIKI)/platform/$(TARGET)/apps/$(APP)/Makefile.$(APP) \
+< 	         $(APP)/Makefile.$(APP)}}
+---
+>   APPDS = ${wildcard ${foreach DIR, $(APPDIRS), ${addprefix $(DIR)/, $(APPS)}}} \
+>              ${wildcard ${addprefix $(CONTIKI)/apps/, $(APPS)} \
+>              ${addprefix $(CONTIKI)/platform/$(TARGET)/apps/, $(APPS)} \
+>              $(APPS)}
+>   APPINCLUDES = ${foreach APP, $(APPS), ${wildcard ${foreach DIR, $(APPDS), $(DIR)/Makefile.$(APP)}}}
+116c109
+< target_makefile := $(wildcard $(CONTIKI)/platform/$(TARGET)/Makefile.$(TARGET))
+---
+> target_makefile := $(wildcard $(CONTIKI)/platform/$(TARGET)/Makefile.$(TARGET) ${foreach TDIR, $(TARGETDIRS), $(TDIR)/$(TARGET)/Makefile.$(TARGET)})
+122,123c115,116
+<   ifeq (${wildcard $(OBJECTDIR)},)
+<     DUMMY := ${shell mkdir $(OBJECTDIR)}
+---
+>   ifneq (1, ${words $(target_makefile)})
+>     ${error More than one TARGET Makefile found: $(target_makefile)}
+125c118,147
+<   include $(CONTIKI)/platform/$(TARGET)/Makefile.$(TARGET)
+---
+>   include $(target_makefile)
+> endif
+> 
+> ifdef PLATFORMAPPS
+>   PLATFORMAPPDS = ${wildcard ${foreach DIR, $(APPDIRS), ${addprefix $(DIR)/, $(PLATFORMAPPS)}}} \
+>              ${wildcard ${addprefix $(CONTIKI)/apps/, $(PLATFORMAPPS)} \
+>              ${addprefix $(CONTIKI)/platform/$(TARGET)/apps/, $(PLATFORMAPPS)} \
+>              $(PLATFORMAPPS)}
+>   PLATFORMAPPINCLUDES = ${foreach APP, $(PLATFORMAPPS), \
+>       ${wildcard ${foreach DIR, $(PLATFORMAPPDS), $(DIR)/Makefile.$(APP)}}}
+>   -include $(PLATFORMAPPINCLUDES)
+>   PLATFORMAPP_SOURCES = ${foreach APP, $(PLATFORMAPPS), $($(APP)_src)}
+>   CONTIKI_SOURCEFILES += $(PLATFORMAPP_SOURCES)
+>   APPDS += $(PLATFORMAPPDS)
+> endif
+> 
+> ### Verbosity control. Use  make V=1  to get verbose builds.
+> 
+> ifeq ($(V),1)
+>   TRACE_CC =
+>   TRACE_LD =
+>   TRACE_AR =
+>   TRACE_AS =
+>   Q=
+> else
+>   TRACE_CC = @echo "  CC       " $<
+>   TRACE_LD = @echo "  LD       " $@
+>   TRACE_AR = @echo "  AR       " $@
+>   TRACE_AS = @echo "  AS       " $<
+>   Q=@
+135c157
+< CONTIKI_TARGET_DIRS_CONCAT = ${addprefix $(CONTIKI)/platform/$(TARGET)/, \
+---
+> CONTIKI_TARGET_DIRS_CONCAT = ${addprefix ${dir $(target_makefile)}, \
+141c163
+<              $(CONTIKI_CPU_DIRS_CONCAT) $(CONTIKIDIRS) $(APPDIRS)
+---
+>              $(CONTIKI_CPU_DIRS_CONCAT) $(CONTIKIDIRS) $(APPDS) ${dir $(target_makefile)}
+160c182
+< 				   $(PROJECT_SOURCEFILES:.c=.d)}
+---
+>                                    $(PROJECT_SOURCEFILES:.c=.d)}
+172c194
+<  clean:
+---
+> clean:
+175,176c197,199
+<         *.cprg *.bin *.data contiki*.a *.firmware core-labels.S *.ihex *.ini \
+<         *.ce *.co $(CLEAN)
+---
+> 	*.cprg *.bin *.data contiki*.a *.firmware core-labels.S *.ihex *.ini \
+> 	*.ce *.co
+> 	rm -rf $(CLEAN)
+178a202,204
+> distclean: clean
+> 	-rm -rf $(CONTIKI_PROJECT).$(TARGET)
+> 
+181c207,208
+< 	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE -c $< -o $@
+---
+> 	$(TRACE_CC)
+> 	$(Q)$(CC) $(CFLAGS) -DAUTOSTART_ENABLE -c $< -o $@
+186,187c213,215
+< $(OBJECTDIR)/%.o: %.c
+< 	$(CC) $(CFLAGS) -MMD -c $< -o $@
+---
+> $(OBJECTDIR)/%.o: %.c | $(OBJECTDIR)
+> 	$(TRACE_CC)
+> 	$(Q)$(CC) $(CFLAGS) -MMD -c $< -o $@
+192,193c220,222
+< $(OBJECTDIR)/%.o: %.S
+< 	$(AS) $(ASFLAGS) -o $@ $<
+---
+> $(OBJECTDIR)/%.o: %.S | $(OBJECTDIR)
+> 	$(TRACE_AS)
+> 	$(Q)$(AS) $(ASFLAGS) -o $@ $<
+198c227,228
+< 	$(CC) $(CFLAGS) -c $< -o $@
+---
+> 	$(TRACE_CC)
+> 	$(Q)$(CC) $(CFLAGS) -c $< -o $@
+200a231
+> 
+203c234,235
+< 	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE -c $< -o $@
+---
+> 	$(TRACE_CC)
+> 	$(Q)$(CC) $(CFLAGS) -DAUTOSTART_ENABLE -c $< -o $@
+212c244,245
+< 	$(AR) $(AROPTS) $@ $^
+---
+> 	$(TRACE_AR)
+> 	$(Q)$(AR) $(AROPTS) $@ $^
+221c254,256
+< 	$(LD) $(LDFLAGS) $(TARGET_STARTFILES) ${filter-out %.a,$^} ${filter %.a,$^} $(TARGET_LIBFILES) -o $@
+---
+> 	$(TRACE_LD)
+> 	$(Q)$(LD) $(LDFLAGS) $(TARGET_STARTFILES) ${filter-out %.a,$^} \
+> 	    ${filter %.a,$^} $(TARGET_LIBFILES) -o $@
+222a258,263
+> 
+> %.ramprof: %.$(TARGET)
+> 	$(NM) -S -td --size-sort $< | grep -i " [abdrw] " | cut -d' ' -f2,4
+> 
+> %.flashprof: %.$(TARGET)
+> 	$(NM) -S -td --size-sort $< | grep -i " [t] " | cut -d' ' -f2,4
